@@ -15,7 +15,6 @@ fn main() {
     print_games(games);
 }
 
-
 #[tokio::main]
 async fn get_games() -> StrykTipset {
     let url = format!("https://api.www.svenskaspel.se/draw/1/stryktipset/draws");
