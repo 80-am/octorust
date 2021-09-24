@@ -24,7 +24,7 @@ async fn get_games() -> StrykTipset {
             .json::<serde_json::Value>()
             .await
             .unwrap();
-    
+
     let mut g: Vec<stryktipset::DrawEvent> = Vec::new();
 
     for game in 0..13 {
@@ -39,9 +39,40 @@ async fn get_games() -> StrykTipset {
 }
 
 fn print_games(s: StrykTipset) {
-    println!("Week: {}\nRevenue: {}", s.week, s.revenue);
+    println!("{}\nRevenue: {} SEK\n", s.week, s.revenue);
     
     for game in 1..13 {
         println!("{}", s.draws[game].event_description);
+        println!("1:{} x:{} 2:{}",
+                parse_odds(&s.draws[game].odds.one),
+                parse_odds(&s.draws[game].odds.x),
+                parse_odds(&s.draws[game].odds.two));
+        let one: f64 = parse_odds(&s.draws[game].odds.one).trim().parse().unwrap();
+        let x: f64 = parse_odds(&s.draws[game].odds.x).trim().parse().unwrap();
+        let two: f64 = parse_odds(&s.draws[game].odds.two).trim().parse().unwrap();
+        println!("Favorite: {}\n", lowest_odds(one, x, two));
+    }
+}
+
+fn parse_odds(o: &str) -> String {
+    let s: &str = &o[..];
+    let period = s.replace(",", ".");
+    String::from(period)
+}
+
+fn lowest_odds(one: f64, x: f64, two: f64) -> f64 {
+    if one < x {
+        if one < two {
+            one
+        } else {
+            two
+        }
+
+    } else {
+        if x < two {
+            x
+        } else {
+            two
+        }
     }
 }
