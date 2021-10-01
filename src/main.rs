@@ -48,7 +48,9 @@ fn print_games(s: StrykTipset) {
                 parse_odds(&s.draws[game].odds.two));
         print_favorite(&s.draws[game]);
         print_goal_avg(&s.draws[game].game.participants[0]);
+        print_trend(&s.draws[game].game.participants[0]);
         print_goal_avg(&s.draws[game].game.participants[1]);
+        print_trend(&s.draws[game].game.participants[1]);
         println!("");
     }
 }
@@ -61,7 +63,15 @@ fn print_favorite(o: &stryktipset::DrawEvent) {
 }
 
 fn print_goal_avg(t: &stryktipset::Participants) {
-    println!("{} goal average: {}", t.name, t.goal_avg);
+    println!("{}\nGoal average: {}", t.name, t.goal_avg);
+}
+
+fn print_trend(t: &stryktipset::Participants) {
+    print!("Trend:");
+    for (_i, game) in t.latest.as_array().iter().enumerate() {
+        print!(" {}", game)
+    }
+    print!("\n");
 }
 
 fn parse_odds(o: &str) -> String {

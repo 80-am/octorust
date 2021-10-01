@@ -60,7 +60,7 @@ pub struct Participants {
     #[serde(rename = "type")]
     loc: String,
     pub name: String,
-    latest: Latest,
+    pub latest: Latest,
     trend: i32,
     pub goal_avg: String,
     short_name: String,
@@ -73,17 +73,23 @@ pub struct Participants {
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-struct Latest {
+pub struct Latest {
     #[serde(rename = "0")]
-    zero: String,
+    pub zero: String,
     #[serde(rename = "1")]
-    one: String,
+    pub one: String,
     #[serde(rename = "2")]
-    two: String,
+    pub two: String,
     #[serde(rename = "3")]
-    three: String,
+    pub three: String,
     #[serde(rename = "4")]
-    four: String,
+    pub four: String,
+}
+
+impl Latest {
+    pub fn as_array(&self) -> [&str; 5] {
+        [&self.zero, &self.one, &self.two, &self.three, &self.four]
+    }
 }
 
 #[derive(Deserialize, Debug)]
