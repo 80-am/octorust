@@ -15,7 +15,7 @@ pub struct DrawEvent {
     event_type_id: i32,
     participant_type: String,
     #[serde(rename = "match")]
-    game : Match,
+    pub game : Match,
     pub odds: Odds,
     #[serde(deserialize_with = "parse_null")]
     start_odds: String,
@@ -38,7 +38,7 @@ pub struct Match {
     #[serde(deserialize_with = "parse_null")]
     status_time: String,
     coverage: i32,
-    participants: Vec<Participants>,
+    pub participants: Vec<Participants>,
     league: League,
     league_table: LeagueTable,
     result: Option<[Results; 0]>,
@@ -55,14 +55,14 @@ struct Results {
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-struct Participants {
+pub struct Participants {
     id: i32,
     #[serde(rename = "type")]
     loc: String,
-    name: String,
+    pub name: String,
     latest: Latest,
     trend: i32,
-    goal_avg: String,
+    pub goal_avg: String,
     short_name: String,
     medium_name: String,
     code: String,
