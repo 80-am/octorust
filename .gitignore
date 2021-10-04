@@ -1,4 +1,6 @@
 # Generated files
 /target/
-
 Cargo.lock
+
+# Others
+testdata.json

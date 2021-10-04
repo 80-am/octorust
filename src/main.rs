@@ -1,4 +1,6 @@
+use clap::{App, Arg};
 use serde::Deserialize;
+use std::fs::File;
 
 pub mod stryktipset;
 
@@ -11,30 +13,46 @@ struct StrykTipset {
 }
 
 fn main() {
-    let games = get_games();
-    print_games(games);
+    let matches = App::new("octorust")
+        .version("1.0")
+        .author("80-am <adam@flonko.com>")
+        .about("Predicts Stryktipset")
+        .arg(Arg::with_name("test")
+            .short("t")
+            .long("testdata")
+            .help("Run testdata from testdata.json")
+            .takes_value(false))
+        .get_matches();
+    print_games(get_games(matches.is_present("test")));
 }
 
 #[tokio::main]
-async fn get_games() -> StrykTipset {
-    let url = format!("https://api.www.svenskaspel.se/draw/1/stryktipset/draws");
-    let res = reqwest::get(url)
+async fn get_games(test: bool) -> StrykTipset {
+    let file = File::open("testdata.json")
+            .expect("file should open read only");
+    let mut json: serde_json::Value = serde_json::from_reader(file)
+            .expect("file should be proper JSON");
+
+    if !test {
+        let url = format!("https://api.www.svenskaspel.se/draw/1/stryktipset/draws");
+        json = reqwest::get(url)
             .await
             .unwrap()
             .json::<serde_json::Value>()
             .await
             .unwrap();
+    }
 
     let mut g: Vec<stryktipset::DrawEvent> = Vec::new();
 
     for game in 0..13 {
-        g.push(<stryktipset::DrawEvent>::deserialize(&res["draws"][0]["drawEvents"][game]).unwrap());
+        g.push(<stryktipset::DrawEvent>::deserialize(&json["draws"][0]["drawEvents"][game]).unwrap());
     }
 
     StrykTipset {
-        week: String::deserialize(&res["draws"][0]["drawComment"]).unwrap(),
+        week: String::deserialize(&json["draws"][0]["drawComment"]).unwrap(),
         draws: g,
-        revenue: String::deserialize(&res["draws"][0]["currentNetSale"]).unwrap(),
+        revenue: String::deserialize(&json["draws"][0]["currentNetSale"]).unwrap(),
     }
 }
 
