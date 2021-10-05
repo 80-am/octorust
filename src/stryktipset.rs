@@ -22,7 +22,8 @@ pub struct DrawEvent {
     #[serde(deserialize_with = "parse_null")]
     outcomes: String,
     pub svenska_folket: SvenskaFolket,
-    tio_tidningars_tips: Option<TioTidningarsTips>,
+    // pub tio_tidningars_tips: Option<TioTidningarsTips>,
+    pub tio_tidningars_tips: TioTidningarsTips,
     provider_ids: Option<Vec<ProviderIds>>,
 }
 
@@ -40,7 +41,7 @@ pub struct Match {
     coverage: i32,
     pub participants: Vec<Participants>,
     league: League,
-    league_table: LeagueTable,
+    pub league_table: LeagueTable,
     result: Option<[Results; 0]>,
     media: Option<Vec<Media>>,
     mutuals: Mutuals,
@@ -133,15 +134,15 @@ struct Season {
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-struct LeagueTable {
-    home_team: TeamStats,
-    away_team: TeamStats,
+pub struct LeagueTable {
+    pub home_team: TeamStats,
+    pub away_team: TeamStats,
 }
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-struct TeamStats {
-    position: String,
+pub struct TeamStats {
+    pub position: String,
     points: String,
     played: String,
     wins: String,
@@ -197,10 +198,10 @@ pub struct SvenskaFolket {
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-struct TioTidningarsTips {
-    one: i32,
-    x: i32,
-    two: i32,
+pub struct TioTidningarsTips {
+    pub one: i32,
+    pub x: i32,
+    pub two: i32,
 }
 
 #[derive(Deserialize, Debug)]

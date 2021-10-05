@@ -22,8 +22,13 @@ fn main() {
             .long("testdata")
             .help("Run testdata from testdata.json")
             .takes_value(false))
+        .arg(Arg::with_name("verbose")
+            .short("v")
+            .long("verbose")
+            .help("Verbosity level") 
+            .takes_value(false))
         .get_matches();
-    print_games(get_games(matches.is_present("test")));
+    print_games(matches.is_present("verbose"), get_games(matches.is_present("test")));
 }
 
 #[tokio::main]
@@ -56,21 +61,44 @@ async fn get_games(test: bool) -> StrykTipset {
     }
 }
 
-fn print_games(s: StrykTipset) {
+fn print_games(v: bool, s: StrykTipset) {
     println!("{}\nRevenue: {} SEK\n", s.week, &s.revenue);
     for game in 0..13 {
-        println!("{}", s.draws[game].event_description);
-        println!("1:{} x:{} 2:{}",
-                parse_odds(&s.draws[game].odds.one),
-                parse_odds(&s.draws[game].odds.x),
-                parse_odds(&s.draws[game].odds.two));
-        print_favorite(&s.draws[game]);
-        print_goal_avg(&s.draws[game].game.participants[0]);
-        print_trend(&s.draws[game].game.participants[0]);
-        print_goal_avg(&s.draws[game].game.participants[1]);
-        print_trend(&s.draws[game].game.participants[1]);
-        println!("");
+        println!("\n############################\n{}", s.draws[game].event_description);
+        if v {
+            print_odds(&s.draws[game]);
+            print_folket(&s.draws[game]);
+            print_media(&s.draws[game]);
+            print_favorite(&s.draws[game]);
+            print_goal_avg(&s.draws[game].game.participants[0]);
+            print_trend(&s.draws[game].game.participants[0]);
+            print_table_position(0, &s.draws[game]);
+            print_goal_avg(&s.draws[game].game.participants[1]);
+            print_trend(&s.draws[game].game.participants[1]);
+            print_table_position(1, &s.draws[game]);
+        }
     }
+}
+
+fn print_odds(t: &stryktipset::DrawEvent) {
+    println!("1: {} x: {} 2:{}",
+        parse_odds(&t.odds.one),
+        parse_odds(&t.odds.x),
+        parse_odds(&t.odds.two));
+}
+
+fn print_folket(t: &stryktipset::DrawEvent) {
+    println!("Folket: 1: {}% x: {}% 2: {}%",
+        &t.svenska_folket.one,
+        &t.svenska_folket.x,
+        &t.svenska_folket.two);
+}
+
+fn print_media(t: &stryktipset::DrawEvent) {
+    println!("10 tidningar: 1: {}0% x: {}0% 2: {}0%",
+        &t.tio_tidningars_tips.one,
+        &t.tio_tidningars_tips.x,
+        &t.tio_tidningars_tips.two);
 }
 
 fn print_favorite(o: &stryktipset::DrawEvent) {
@@ -90,6 +118,14 @@ fn print_trend(t: &stryktipset::Participants) {
         print!(" {}", game)
     }
     print!("\n");
+}
+
+fn print_table_position(p: usize, t: &stryktipset::DrawEvent) {
+    if p == 0 {
+        println!("Position: {}", &t.game.league_table.home_team.position);
+    } else {
+        println!("Position: {}", &t.game.league_table.away_team.position);
+    }
 }
 
 fn parse_odds(o: &str) -> String {
