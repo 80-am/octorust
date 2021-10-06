@@ -22,13 +22,18 @@ fn main() {
             .long("testdata")
             .help("Run testdata from testdata.json")
             .takes_value(false))
+        .arg(Arg::with_name("probability")
+            .short("p")
+            .long("probability")
+            .help("Return odds in percentage instead of decimal")
+            .takes_value(false))
         .arg(Arg::with_name("verbose")
             .short("v")
             .long("verbose")
             .help("Verbosity level") 
             .takes_value(false))
         .get_matches();
-    print_games(matches.is_present("verbose"), get_games(matches.is_present("test")));
+    print_games(matches.is_present("probability"), matches.is_present("verbose"), get_games(matches.is_present("test")));
 }
 
 #[tokio::main]
@@ -61,13 +66,13 @@ async fn get_games(test: bool) -> StrykTipset {
     }
 }
 
-fn print_games(v: bool, s: StrykTipset) {
+fn print_games(p: bool, v: bool, s: StrykTipset) {
     println!("{}\nRevenue: {} SEK\n", s.week, &s.revenue);
     for game in 0..13 {
-        println!("\n############################\n{}", s.draws[game].event_description);
+        println!("\n{}", s.draws[game].event_description);
         if v {
-            print_odds(&s.draws[game]);
-            print_folket(&s.draws[game]);
+            print_odds(p, &s.draws[game]);
+            print_folket(p, &s.draws[game]);
             print_media(&s.draws[game]);
             print_favorite(&s.draws[game]);
             print_goal_avg(&s.draws[game].game.participants[0]);
@@ -80,18 +85,27 @@ fn print_games(v: bool, s: StrykTipset) {
     }
 }
 
-fn print_odds(t: &stryktipset::DrawEvent) {
-    println!("1: {} x: {} 2:{}",
-        parse_odds(&t.odds.one),
-        parse_odds(&t.odds.x),
-        parse_odds(&t.odds.two));
+fn print_odds(p: bool, t: &stryktipset::DrawEvent) {
+    if p {
+        print_probability([&t.odds.one, &t.odds.x, &t.odds.two]);
+    } else {
+        print_decimal([&t.odds.one, &t.odds.x, &t.odds.two]);
+    }
 }
 
-fn print_folket(t: &stryktipset::DrawEvent) {
-    println!("Folket: 1: {}% x: {}% 2: {}%",
-        &t.svenska_folket.one,
-        &t.svenska_folket.x,
-        &t.svenska_folket.two);
+fn print_folket(p: bool, t: &stryktipset::DrawEvent) {
+    if p {
+        println!("Folket: 1: {}% x: {}% 2: {}%",
+            &t.svenska_folket.one,
+            &t.svenska_folket.x,
+            &t.svenska_folket.two);
+    } else {
+        print!("Folket: ");
+        print_decimal([
+            &convert_odds(&t.svenska_folket.one),
+            &convert_odds(&t.svenska_folket.x),
+            &convert_odds(&t.svenska_folket.two)]);
+    }
 }
 
 fn print_media(t: &stryktipset::DrawEvent) {
@@ -128,11 +142,29 @@ fn print_table_position(p: usize, t: &stryktipset::DrawEvent) {
     }
 }
 
+fn print_probability(o: [&str; 3]) {
+    print!("1: {:.2}% X: {:.2}% 2: {:.2}%\n",
+        convert_odds(o[0]),
+        convert_odds(o[1]),
+        convert_odds(o[2]));
+}
+
+fn print_decimal(o: [&str; 3]) {
+    print!("1: {:.4} X: {:.4} 2: {:.4}\n", o[0], o[1], o[2]);
+}
+
+fn convert_odds(o: &str) -> String {
+    let f = parse_odds(&o).parse::<f32>().unwrap();
+    let d = 100.00 / f;
+    d.to_string()
+}
+
 fn parse_odds(o: &str) -> String {
     let s: &str = &o[..];
     let period = s.replace(",", ".");
     String::from(period)
 }
+
 
 fn get_lowest_odds(one: f64, x: f64, two: f64) -> f64 {
     if one < x {

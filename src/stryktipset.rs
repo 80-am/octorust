@@ -22,7 +22,6 @@ pub struct DrawEvent {
     #[serde(deserialize_with = "parse_null")]
     outcomes: String,
     pub svenska_folket: SvenskaFolket,
-    // pub tio_tidningars_tips: Option<TioTidningarsTips>,
     pub tio_tidningars_tips: TioTidningarsTips,
     provider_ids: Option<Vec<ProviderIds>>,
 }
